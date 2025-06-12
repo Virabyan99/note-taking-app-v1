@@ -12,6 +12,8 @@ export interface NoteState {
   setSettings: (s: Partial<AppSettings>) => void;
   rehydrate: (notes: Note[], settings: AppSettings) => void;
   _rehydrated: boolean;
+  currentId: string | null; // Added: Track the currently open note ID
+  setCurrent: (id: string | null) => void; // Added: Set the current note ID
 }
 
 export type NoteStoreCreator = StateCreator<NoteState, [['zustand/immer', never]], []>;
@@ -21,6 +23,7 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
     notes: [],
     settings: { theme: 'light', fontSize: 16, fontFamily: 'system' },
     _rehydrated: false,
+    currentId: null, // Added: Initialize currentId to null
 
     async createNote(partial = {}) {
       const newNote: Note = {
@@ -67,5 +70,11 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
         state._rehydrated = true;
       });
     },
+
+    setCurrent(id) {
+      set(state => {
+        state.currentId = id;
+      });
+    }, // Added: Function to update currentId
   });
 }
