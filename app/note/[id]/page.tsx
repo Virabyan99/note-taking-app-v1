@@ -1,4 +1,6 @@
 "use client";
+export const runtime = 'edge';
+
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useNoteStore } from '@/store';
@@ -7,6 +9,8 @@ import { db } from '@/db/db';
 import { noteSchema } from '@/types/types';
 import NoteHeader from '@/components/NoteHeader';
 import { AnimatePresence, motion } from 'framer-motion';
+
+
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
 
