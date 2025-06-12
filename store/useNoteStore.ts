@@ -12,8 +12,8 @@ export interface NoteState {
   setSettings: (s: Partial<AppSettings>) => void;
   rehydrate: (notes: Note[], settings: AppSettings) => void;
   _rehydrated: boolean;
-  currentId: string | null; // Added: Track the currently open note ID
-  setCurrent: (id: string | null) => void; // Added: Set the current note ID
+  currentId: string | null;
+  setCurrent: (id: string | null) => void;
   saveState: 'idle' | 'saving' | 'saved';
   setSaveState: (state: 'idle' | 'saving' | 'saved') => void;
 }
@@ -25,7 +25,7 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
     notes: [],
     settings: { theme: 'light', fontSize: 16, fontFamily: 'system' },
     _rehydrated: false,
-    currentId: null, // Added: Initialize currentId to null
+    currentId: null,
     saveState: 'idle',
     setSaveState: (state) => set({ saveState: state }),
 
@@ -64,7 +64,11 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       set(state => {
         Object.assign(state.settings, patch);
       });
-      db.settings.put(get().settings, 'app');
+      const { settings } = get();
+      db.settings.put(settings, 'app');
+      if (patch.theme) {
+        localStorage.setItem('lexical-mini-theme', patch.theme);
+      }
     },
 
     rehydrate(notes, settings) {
@@ -79,6 +83,6 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       set(state => {
         state.currentId = id;
       });
-    }, // Added: Function to update currentId
+    },
   });
 }

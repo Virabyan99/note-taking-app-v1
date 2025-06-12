@@ -10,7 +10,7 @@ export const noteSchema = z.object({
 export type Note = z.infer<typeof noteSchema>;
 
 export const settingsSchema = z.object({
-  theme: z.enum(['light', 'dark']).default('light'),
+  theme: z.enum(['light', 'dark', 'system']).default('system'), // Updated to include 'system' and set as default
   fontSize: z.number().min(12).max(24).default(16),
   fontFamily: z.enum(['system', 'serif', 'mono']).default('system'),
 });
