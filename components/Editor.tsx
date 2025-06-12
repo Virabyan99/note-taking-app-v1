@@ -1,6 +1,5 @@
 'use client';
-
-import { useCallback } from 'react'; // Still needed for initialState
+import { useCallback } from 'react';
 import { EditorState } from 'lexical';
 import { useNoteStore } from '@/store';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
@@ -9,7 +8,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { useAutosave } from '@/hooks/useAutosave'; // Added
+import { useAutosave } from '@/hooks/useAutosave';
 
 export const theme = {
   paragraph: 'mb-2',
@@ -27,7 +26,7 @@ interface EditorProps {
 export default function Editor({ noteId }: EditorProps) {
   const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
   const updateNote = useNoteStore((s) => s.updateNote);
-  const autosave = useAutosave(noteId); // Added
+  const autosave = useAutosave(noteId);
 
   if (!note) {
     return (
@@ -49,7 +48,7 @@ export default function Editor({ noteId }: EditorProps) {
 
   return (
     <LexicalComposer initialConfig={{ theme, namespace: 'lexical-mini' }}>
-      <div className="prose dark:prose-invert max-w-none">
+      <div className="prose dark:prose-invert max-w-none border border-zinc-200 dark:border-zinc-700 rounded-md p-4">
         <PlainTextPlugin
           contentEditable={
             <ContentEditable
@@ -62,7 +61,7 @@ export default function Editor({ noteId }: EditorProps) {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
-        <OnChangePlugin onChange={autosave} /> {/* Updated */}
+        <OnChangePlugin onChange={autosave} />
       </div>
     </LexicalComposer>
   );

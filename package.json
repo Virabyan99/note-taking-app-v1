@@ -15,6 +15,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dexie": "^4.0.11",
+    "framer-motion": "^12.17.0",
     "immer": "^10.1.1",
     "lexical": "^0.32.1",
     "lodash.debounce": "^4.0.8",
