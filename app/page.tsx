@@ -1,4 +1,5 @@
 import { IconMoodSmile } from '@tabler/icons-react';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -8,6 +9,12 @@ export default function Home() {
       <p className="text-zinc-500 dark:text-zinc-400">
         Skeleton app generated in Lesson 05. Time to add state next!
       </p>
+      <Link
+        className="rounded bg-brand px-4 py-2 font-medium text-gray-800 shadow"
+        href="/note/new"
+      >
+        New Note
+      </Link>
     </section>
   );
 }
