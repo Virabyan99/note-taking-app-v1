@@ -9,6 +9,10 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useAutosave } from '@/hooks/useAutosave';
+import { ImageNode, $createImageNode } from '@/nodes/ImageNode';
+import { $insertNodes } from 'lexical';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { IconPhotoPlus } from '@tabler/icons-react';
 
 export const theme = {
   paragraph: 'mb-2',
@@ -21,6 +25,30 @@ export const theme = {
 
 interface EditorProps {
   noteId: string;
+}
+
+function InsertImageButton() {
+  const [editor] = useLexicalComposerContext();
+  const addDemo = () => {
+    editor.update(() => {
+      $insertNodes([
+        $createImageNode({
+          src: 'https://placekitten.com/800/600',
+          alt: 'Kitten',
+          width: 800,
+          height: 600,
+        }),
+      ]);
+    });
+  };
+  return (
+    <button
+      onClick={addDemo}
+      className="rounded border px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+    >
+      <IconPhotoPlus size={16} className="inline mr-1" /> Image
+    </button>
+  );
 }
 
 export default function Editor({ noteId }: EditorProps) {
@@ -47,7 +75,9 @@ export default function Editor({ noteId }: EditorProps) {
   );
 
   return (
-    <LexicalComposer initialConfig={{ theme, namespace: 'lexical-mini' }}>
+    <LexicalComposer
+      initialConfig={{ theme, namespace: 'lexical-mini', nodes: [ImageNode] }}
+    >
       <div className="prose dark:prose-invert max-w-none border border-zinc-200 dark:border-zinc-700 rounded-md p-4">
         <PlainTextPlugin
           contentEditable={
@@ -62,6 +92,9 @@ export default function Editor({ noteId }: EditorProps) {
         />
         <HistoryPlugin />
         <OnChangePlugin onChange={autosave} />
+      </div>
+      <div className="mt-2">
+        <InsertImageButton />
       </div>
     </LexicalComposer>
   );
