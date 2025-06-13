@@ -71,6 +71,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
 
   decorate(): ReactNode {
     return React.createElement(ImageComponent, {
+      nodeKey: this.getKey(), // Add this
       src: this.__src,
       alt: this.__alt,
       width: this.__width,

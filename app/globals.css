@@ -131,3 +131,9 @@
   --background: #0a0a0a;
   --foreground: #ededed;
 }
+
+.lexical-editor > * {
+  display: inline-block;
+  vertical-align: top;
+  margin: 0 10px;
+}

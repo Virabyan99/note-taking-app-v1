@@ -15,6 +15,7 @@ import { IconPhotoPlus } from '@tabler/icons-react';
 import ImagePlugin from './plugins/ImagePlugin';
 import PasteImagePlugin from './plugins/PasteImagePlugin';
 import DragDropImagePlugin from './plugins/DragDropImagePlugin';
+import HorizontalSortPlugin from './plugins/HorizontalSortPlugin';
 
 // Define an empty editor state for new notes with a default paragraph
 const emptyState = JSON.stringify({
@@ -121,6 +122,7 @@ function EditorContent({ noteId }: EditorProps) {
         <ImagePlugin />
         <PasteImagePlugin />
         <DragDropImagePlugin />
+        <HorizontalSortPlugin /> {/* Add this */}
       </div>
     </>
   );
