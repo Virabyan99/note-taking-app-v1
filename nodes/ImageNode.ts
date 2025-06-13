@@ -1,6 +1,9 @@
 import { DecoratorNode, SerializedLexicalNode } from 'lexical';
 import React, { ReactNode } from 'react';
 import ImageComponent from '@/components/ImageComponent';
+import { createCommand } from 'lexical';
+
+export const INSERT_IMAGE_COMMAND = createCommand<ImagePayload>('INSERT_IMAGE');
 
 export interface ImagePayload {
   src: string;

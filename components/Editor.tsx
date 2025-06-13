@@ -1,5 +1,5 @@
 'use client';
-import { useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { EditorState } from 'lexical';
 import { useNoteStore } from '@/store';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
@@ -9,10 +9,29 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useAutosave } from '@/hooks/useAutosave';
-import { ImageNode, $createImageNode } from '@/nodes/ImageNode';
-import { $insertNodes } from 'lexical';
+import { ImageNode, INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { IconPhotoPlus } from '@tabler/icons-react';
+import ImagePlugin from './plugins/ImagePlugin';
+import PasteImagePlugin from './plugins/PasteImagePlugin';
+import DragDropImagePlugin from './plugins/DragDropImagePlugin';
+
+// Define an empty editor state for new notes with a default paragraph
+const emptyState = JSON.stringify({
+  root: {
+    children: [
+      {
+        type: 'paragraph',
+        children: [{ type: 'text', text: '' }],
+      },
+    ],
+    direction: null,
+    format: '',
+    indent: 0,
+    type: 'root',
+    version: 1,
+  },
+});
 
 export const theme = {
   paragraph: 'mb-2',
@@ -27,34 +46,52 @@ interface EditorProps {
   noteId: string;
 }
 
-function InsertImageButton() {
+function Toolbar() {
   const [editor] = useLexicalComposerContext();
-  const addDemo = () => {
-    editor.update(() => {
-      $insertNodes([
-        $createImageNode({
-          src: 'https://placekitten.com/800/600',
-          alt: 'Kitten',
-          width: 800,
-          height: 600,
-        }),
-      ]);
-    });
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    Array.from(files)
+      .filter((f) => f.type.startsWith('image/'))
+      .forEach((f) => {
+        const src = URL.createObjectURL(f);
+        editor.dispatchCommand(INSERT_IMAGE_COMMAND, { src, alt: f.name });
+      });
   };
+
   return (
-    <button
-      onClick={addDemo}
-      className="rounded border px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-    >
-      <IconPhotoPlus size={16} className="inline mr-1" /> Image
-    </button>
+    <div className="mb-2 flex items-center gap-2">
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        ref={inputRef}
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+      <button
+        onClick={() => inputRef.current?.click()}
+        className="rounded border px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      >
+        <IconPhotoPlus size={16} className="inline mr-1" /> Image
+      </button>
+    </div>
   );
 }
 
-export default function Editor({ noteId }: EditorProps) {
+function EditorContent({ noteId }: EditorProps) {
   const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
-  const updateNote = useNoteStore((s) => s.updateNote);
   const autosave = useAutosave(noteId);
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    const stateJson = note?.body || emptyState;
+    const state = editor.parseEditorState(stateJson);
+    queueMicrotask(() => {
+      editor.setEditorState(state);
+    });
+  }, [editor, note?.body]);
 
   if (!note) {
     return (
@@ -64,20 +101,9 @@ export default function Editor({ noteId }: EditorProps) {
     );
   }
 
-  const initialState = useCallback(
-    (editor: unknown) => {
-      (editor as any).update(() => {
-        const root = (editor as any).getRootElement?.() ?? null;
-        if (root) root.innerText = note.body;
-      });
-    },
-    [note.body]
-  );
-
   return (
-    <LexicalComposer
-      initialConfig={{ theme, namespace: 'lexical-mini', nodes: [ImageNode] }}
-    >
+    <>
+      <Toolbar />
       <div className="prose dark:prose-invert max-w-none border border-zinc-200 dark:border-zinc-700 rounded-md p-4">
         <PlainTextPlugin
           contentEditable={
@@ -92,10 +118,20 @@ export default function Editor({ noteId }: EditorProps) {
         />
         <HistoryPlugin />
         <OnChangePlugin onChange={autosave} />
+        <ImagePlugin />
+        <PasteImagePlugin />
+        <DragDropImagePlugin />
       </div>
-      <div className="mt-2">
-        <InsertImageButton />
-      </div>
+    </>
+  );
+}
+
+export default function Editor({ noteId }: EditorProps) {
+  return (
+    <LexicalComposer
+      initialConfig={{ theme, namespace: 'lexical-mini', nodes: [ImageNode] }}
+    >
+      <EditorContent noteId={noteId} />
     </LexicalComposer>
   );
 }

@@ -9,9 +9,9 @@ export function useAutosave(noteId: string) {
   const persist = useCallback(
     (state: EditorState) => {
       setSaveState('saving');
-      const text = state.toJSON().root?.children?.[0]?.textContent ?? '';
+      const serializedState = JSON.stringify(state.toJSON());
       updateNote(noteId, (d) => {
-        d.body = text;
+        d.body = serializedState;
         d.updatedAt = Date.now();
       });
       setSaveState('saved');
