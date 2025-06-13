@@ -4,6 +4,7 @@ import ImageComponent from '@/components/ImageComponent';
 import { createCommand } from 'lexical';
 
 export const INSERT_IMAGE_COMMAND = createCommand<ImagePayload>('INSERT_IMAGE');
+export const SET_IMAGE_HEIGHT_COMMAND = createCommand<{ key: string; height: number }>('SET_IMAGE_HEIGHT');
 
 export interface ImagePayload {
   src: string;
@@ -14,7 +15,8 @@ export interface ImagePayload {
 
 export type SerializedImageNode = {
   type: 'image';
-  version: 1;
+  version: 2; // Bumped to 2 to include height
+  height?: number; // Added height
 } & ImagePayload &
   SerializedLexicalNode;
 
@@ -48,7 +50,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
   exportJSON(): SerializedImageNode {
     return {
       type: 'image',
-      version: 1,
+      version: 2,
       src: this.__src,
       alt: this.__alt,
       width: this.__width,
@@ -71,12 +73,17 @@ export class ImageNode extends DecoratorNode<ReactNode> {
 
   decorate(): ReactNode {
     return React.createElement(ImageComponent, {
-      nodeKey: this.getKey(), // Add this
+      nodeKey: this.getKey(),
       src: this.__src,
       alt: this.__alt,
       width: this.__width,
       height: this.__height,
     });
+  }
+
+  setHeight(h: number) {
+    const writable = this.getWritable();
+    writable.__height = h;
   }
 }
 
