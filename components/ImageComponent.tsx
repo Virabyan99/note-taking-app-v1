@@ -29,7 +29,6 @@ export default function ImageComponent({
     isDragging,
   } = useSortable({ id: nodeKey });
 
-  // Smooth animation with react-spring
   const style = useSpring({
     transform: CSS.Transform.toString(transform),
     config: { tension: 300, friction: 30 },
@@ -40,11 +39,11 @@ export default function ImageComponent({
       ref={setNodeRef}
       style={{ ...style, transition }}
       className={`relative my-4 w-full cursor-grab select-none overflow-hidden rounded-lg border ${
-        isDragging ? 'ring-2 ring-blue-500' : ''
+        isDragging ? 'opacity-30 ring-2 ring-blue-500' : ''
       } border-zinc-200 dark:border-zinc-700`}
       {...attributes}
       {...listeners}
-      data-lexical-key={nodeKey} // For HorizontalSortPlugin to identify nodes
+      data-lexical-key={nodeKey}
     >
       <Image
         src={src}
@@ -53,7 +52,7 @@ export default function ImageComponent({
         height={height || 600}
         className="h-auto w-full object-contain"
         unoptimized={src.startsWith('blob:')}
-        draggable={false} // Prevent native drag
+        draggable={false}
         priority
       />
       {alt && (
