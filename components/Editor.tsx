@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, createContext, useState } from 'react';
-import { EditorState } from 'lexical';
+import React, { createContext, useEffect, useState } from 'react';
+import { LexicalEditor } from 'lexical'; // Import LexicalEditor
 import { useNoteStore } from '@/store';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
@@ -9,9 +9,8 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useAutosave } from '@/hooks/useAutosave';
-import { ImageNode, INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
+import { ImageNode } from '@/nodes/ImageNode';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { IconPhotoPlus } from '@tabler/icons-react';
 import ImagePlugin from './plugins/ImagePlugin';
 import PasteImagePlugin from './plugins/PasteImagePlugin';
 import DragDropImagePlugin from './plugins/DragDropImagePlugin';
@@ -44,7 +43,7 @@ const emptyState = JSON.stringify({
     type: 'root',
     version: 1,
   },
-})
+});
 
 export const theme = {
   paragraph: 'mb-2',
@@ -53,43 +52,10 @@ export const theme = {
     italic: 'italic',
     underline: 'underline',
   },
-}
+};
 
 interface EditorProps {
-  noteId: string
-}
-
-function Toolbar() {
-  const [editor] = useLexicalComposerContext()
-  const inputRef = React.useRef<HTMLInputElement>(null)
-
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return
-    Array.from(files)
-      .filter((f) => f.type.startsWith('image/'))
-      .forEach((f) => {
-        const src = URL.createObjectURL(f)
-        editor.dispatchCommand(INSERT_IMAGE_COMMAND, { src, alt: f.name })
-      })
-  }
-
-  return (
-    <div className="mb-2 flex items-center gap-2">
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        hidden
-        ref={inputRef}
-        onChange={(e) => handleFiles(e.target.files)}
-      />
-      <button
-        onClick={() => inputRef.current?.click()}
-        className="rounded border px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
-        <IconPhotoPlus size={16} className="inline mr-1" /> Image
-      </button>
-    </div>
-  )
+  noteId: string;
 }
 
 function EditorContent({ noteId }: EditorProps) {
@@ -97,14 +63,17 @@ function EditorContent({ noteId }: EditorProps) {
   const autosave = useAutosave(noteId);
   const [editor] = useLexicalComposerContext();
   const [isInternalDrag, setIsInternalDrag] = useState(false);
+  const setEditorInstance = useNoteStore((s) => s.setEditorInstance);
 
   useEffect(() => {
+    setEditorInstance(editor); // Set editor instance in store
     const stateJson = note?.body || emptyState;
     const state = editor.parseEditorState(stateJson);
     queueMicrotask(() => {
       editor.setEditorState(state);
     });
-  }, [editor, note?.body]);
+    return () => setEditorInstance(null); // Clear on unmount
+  }, [editor, note?.body, setEditorInstance]);
 
   if (!note) {
     return (
@@ -116,12 +85,11 @@ function EditorContent({ noteId }: EditorProps) {
 
   return (
     <DragContext.Provider value={{ isInternalDrag, setIsInternalDrag }}>
-      <Toolbar />
-      <div className="prose dark:prose-invert max-w-none border border-zinc-200 dark:border-zinc-700 rounded-md p-4">
+      <div className="prose dark:prose-invert max-w-[90wv] border border-zinc-200 dark:border-zinc-700 rounded-md p-2">
         <PlainTextPlugin
           contentEditable={
             <ContentEditable
-              className="min-h-[60vh] outline-none whitespace-pre-wrap focus:ring-0 focus-visible:ring-0 lexical-editor"
+              className="min-h-[80vh] min-w-[90vw] outline-none whitespace-pre-wrap focus:ring-0 focus-visible:ring-0 lexical-editor"
             />
           }
           placeholder={
@@ -146,8 +114,9 @@ function EditorContent({ noteId }: EditorProps) {
 export default function Editor({ noteId }: EditorProps) {
   return (
     <LexicalComposer
-      initialConfig={{ theme, namespace: 'lexical-mini', nodes: [ImageNode] }}>
+      initialConfig={{ theme, namespace: 'lexical-mini', nodes: [ImageNode] }}
+    >
       <EditorContent noteId={noteId} />
     </LexicalComposer>
-  )
+  );
 }
