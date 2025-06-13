@@ -14,14 +14,15 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useMemo } from 'react';
+import { useMemo, useContext } from 'react';
 import { $isImageNode } from '@/nodes/ImageNode';
 import { $getRoot } from 'lexical';
+import { DragContext } from '../Editor'; // Adjust path as needed
 
 export default function HorizontalSortPlugin() {
   const [editor] = useLexicalComposerContext();
+  const { setIsInternalDrag } = useContext(DragContext);
 
-  // Derive the order of image node keys
   const ids = useMemo(() => {
     let keys: string[] = [];
     editor.getEditorState().read(() => {
@@ -46,7 +47,6 @@ export default function HorizontalSortPlugin() {
     const newIndex = ids.indexOf(over.id);
     const newOrder = arrayMove(ids, oldIndex, newIndex);
 
-    // Persist the new order to Lexical
     editor.update(() => {
       const root = $getRoot();
       const nodes = editor.getEditorState()._nodeMap;
@@ -54,10 +54,7 @@ export default function HorizontalSortPlugin() {
         .map((id) => nodes.get(id))
         .filter($isImageNode);
 
-      // Remove all image nodes
       orderedNodes.forEach((node) => node.remove());
-
-      // Append them in the new order at the end
       orderedNodes.forEach((node) => root.append(node));
     });
   };
@@ -67,7 +64,11 @@ export default function HorizontalSortPlugin() {
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={[restrictToHorizontalAxis]}
-      onDragEnd={handleDragEnd}
+      onDragStart={() => setIsInternalDrag(true)}
+      onDragEnd={(event) => {
+        setIsInternalDrag(false);
+        handleDragEnd(event);
+      }}
     >
       <SortableContext items={ids} strategy={horizontalListSortingStrategy}>
         <></>

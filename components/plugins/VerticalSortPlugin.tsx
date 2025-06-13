@@ -14,16 +14,17 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { getImageNodeKeys } from '@/utils/lexicalHelpers';
 import { $getRoot } from 'lexical';
 import { $isImageNode } from '@/nodes/ImageNode';
+import  {DragContext}  from '../Editor'; // Adjust path as needed
 
 export default function VerticalSortPlugin() {
   const [editor] = useLexicalComposerContext();
   const [ids, setIds] = useState<string[]>([]);
+  const { setIsInternalDrag } = useContext(DragContext);
 
-  // Sync image node keys when the editor state changes
   useEffect(() => {
     return editor.registerUpdateListener(() => {
       editor.getEditorState().read(() => {
@@ -51,9 +52,7 @@ export default function VerticalSortPlugin() {
         .map((id) => nodes.get(id))
         .filter($isImageNode);
 
-      // Remove existing image nodes
       orderedNodes.forEach((node) => node.remove());
-      // Re-append in new order
       orderedNodes.forEach((node) => root.append(node));
     });
   };
@@ -63,7 +62,11 @@ export default function VerticalSortPlugin() {
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={[restrictToVerticalAxis]}
-      onDragEnd={handleDragEnd}
+      onDragStart={() => setIsInternalDrag(true)}
+      onDragEnd={(event) => {
+        setIsInternalDrag(false);
+        handleDragEnd(event);
+      }}
     >
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         <></>

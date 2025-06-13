@@ -16,19 +16,29 @@ interface Props {
   alt?: string;
 }
 
+// Define the shape of the crop area object
+interface Area {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export default function ImageEditDialog({ open, onOpenChange, src, nodeKey, alt }: Props) {
   const [editor] = useLexicalComposerContext();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  // Specify that croppedAreaPixels can be Area or null
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [filter, setFilter] = useState<'none' | 'grayscale' | 'sepia' | 'contrast'>('none');
 
-  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+  // Use _ for unused croppedArea parameter and type croppedAreaPixels
+  const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleSave = async () => {
-    const image = await createImageBitmap(await fetch(src).then(r => r.blob()));
+    const image = await createImageBitmap(await fetch(src).then((r) => r.blob()));
     const canvas = document.createElement('canvas');
     canvas.width = croppedAreaPixels?.width ?? image.width;
     canvas.height = croppedAreaPixels?.height ?? image.height;
@@ -84,10 +94,10 @@ export default function ImageEditDialog({ open, onOpenChange, src, nodeKey, alt 
         </div>
         <div className="flex items-center gap-4">
           <label>Zoom</label>
-          <Slider min={1} max={3} step={0.1} value={[zoom]} onValueChange={v => setZoom(v[0])} />
+          <Slider min={1} max={3} step={0.1} value={[zoom]} onValueChange={(v) => setZoom(v[0])} />
         </div>
         <div className="flex items-center gap-2">
-          {(['none', 'grayscale', 'sepia', 'contrast'] as const).map(f => (
+          {(['none', 'grayscale', 'sepia', 'contrast'] as const).map((f) => (
             <Button
               key={f}
               size="sm"

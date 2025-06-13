@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
+import { DragContext } from '../Editor'; // Adjust path as needed
 
 export default function DragDropImagePlugin() {
   const [editor] = useLexicalComposerContext();
   const [active, setActive] = useState(false);
+  const { isInternalDrag } = useContext(DragContext);
 
   useEffect(() => {
     const root = editor.getRootElement();
@@ -20,6 +22,10 @@ export default function DragDropImagePlugin() {
     };
     const onDragLeave = () => setActive(false);
     const onDrop = (e: DragEvent) => {
+      if (isInternalDrag) {
+        e.preventDefault();
+        return;
+      }
       e.preventDefault();
       setActive(false);
       const files = Array.from(e.dataTransfer?.files ?? []).filter((f) =>
@@ -44,7 +50,7 @@ export default function DragDropImagePlugin() {
       root.removeEventListener('dragleave', onDragLeave);
       root.removeEventListener('drop', onDrop);
     };
-  }, [editor]);
+  }, [editor, isInternalDrag]);
 
   if (!active) return null;
   return (

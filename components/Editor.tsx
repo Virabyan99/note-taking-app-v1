@@ -1,24 +1,33 @@
-'use client'
-import React, { useEffect } from 'react'
-import { EditorState } from 'lexical'
-import { useNoteStore } from '@/store'
-import { LexicalComposer } from '@lexical/react/LexicalComposer'
-import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin'
-import { ContentEditable } from '@lexical/react/LexicalContentEditable'
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin'
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
-import { useAutosave } from '@/hooks/useAutosave'
-import { ImageNode, INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { IconPhotoPlus } from '@tabler/icons-react'
-import ImagePlugin from './plugins/ImagePlugin'
-import PasteImagePlugin from './plugins/PasteImagePlugin'
-import DragDropImagePlugin from './plugins/DragDropImagePlugin'
-import HorizontalSortPlugin from './plugins/HorizontalSortPlugin'
-import VerticalSortPlugin from './plugins/VerticalSortPlugin'
-import ImageResizePlugin from './plugins/ImageResizePlugin'
-import ImageUpdatePlugin from './plugins/ImageUpdatePlugin'
+'use client';
+import React, { useEffect, createContext, useState } from 'react';
+import { EditorState } from 'lexical';
+import { useNoteStore } from '@/store';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { useAutosave } from '@/hooks/useAutosave';
+import { ImageNode, INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { IconPhotoPlus } from '@tabler/icons-react';
+import ImagePlugin from './plugins/ImagePlugin';
+import PasteImagePlugin from './plugins/PasteImagePlugin';
+import DragDropImagePlugin from './plugins/DragDropImagePlugin';
+import HorizontalSortPlugin from './plugins/HorizontalSortPlugin';
+import VerticalSortPlugin from './plugins/VerticalSortPlugin';
+import ImageResizePlugin from './plugins/ImageResizePlugin';
+import ImageUpdatePlugin from './plugins/ImageUpdatePlugin';
+
+// Define and export DragContext
+export const DragContext = createContext<{
+  isInternalDrag: boolean;
+  setIsInternalDrag: (val: boolean) => void;
+}>({
+  isInternalDrag: false,
+  setIsInternalDrag: () => {},
+});
 
 // Define an empty editor state for new notes with a default paragraph
 const emptyState = JSON.stringify({
@@ -84,53 +93,54 @@ function Toolbar() {
 }
 
 function EditorContent({ noteId }: EditorProps) {
-  const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId))
-  const autosave = useAutosave(noteId)
-  const [editor] = useLexicalComposerContext()
+  const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
+  const autosave = useAutosave(noteId);
+  const [editor] = useLexicalComposerContext();
+  const [isInternalDrag, setIsInternalDrag] = useState(false);
 
   useEffect(() => {
-    const stateJson = note?.body || emptyState
-    const state = editor.parseEditorState(stateJson)
+    const stateJson = note?.body || emptyState;
+    const state = editor.parseEditorState(stateJson);
     queueMicrotask(() => {
-      editor.setEditorState(state)
-    })
-  }, [editor, note?.body])
+      editor.setEditorState(state);
+    });
+  }, [editor, note?.body]);
 
   if (!note) {
     return (
       <p className="text-center text-red-600">
         Note not found. Return to home.
       </p>
-    )
+    );
   }
 
   return (
-  <>
-    <Toolbar />
-    <div className="prose dark:prose-invert max-w-none border border-zinc-200 dark:border-zinc-700 rounded-md p-4">
-      <PlainTextPlugin
-        contentEditable={
-          <ContentEditable
-            className="min-h-[60vh] outline-none whitespace-pre-wrap focus:ring-0 focus-visible:ring-0 lexical-editor"
-          />
-        }
-        placeholder={
-          <span className="text-zinc-400 select-none">Start typing…</span>
-        }
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-      <HistoryPlugin />
-      <OnChangePlugin onChange={autosave} />
-      <ImagePlugin />
-      <PasteImagePlugin />
-      <DragDropImagePlugin />
-      <HorizontalSortPlugin />
-      <VerticalSortPlugin />
-      <ImageResizePlugin />
-      <ImageUpdatePlugin />
-    </div>
-  </>
-);
+    <DragContext.Provider value={{ isInternalDrag, setIsInternalDrag }}>
+      <Toolbar />
+      <div className="prose dark:prose-invert max-w-none border border-zinc-200 dark:border-zinc-700 rounded-md p-4">
+        <PlainTextPlugin
+          contentEditable={
+            <ContentEditable
+              className="min-h-[60vh] outline-none whitespace-pre-wrap focus:ring-0 focus-visible:ring-0 lexical-editor"
+            />
+          }
+          placeholder={
+            <span className="text-zinc-400 select-none">Start typing…</span>
+          }
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <HistoryPlugin />
+        <OnChangePlugin onChange={autosave} />
+        <ImagePlugin />
+        <PasteImagePlugin />
+        <DragDropImagePlugin />
+        <HorizontalSortPlugin />
+        <VerticalSortPlugin />
+        <ImageResizePlugin />
+        <ImageUpdatePlugin />
+      </div>
+    </DragContext.Provider>
+  );
 }
 
 export default function Editor({ noteId }: EditorProps) {
