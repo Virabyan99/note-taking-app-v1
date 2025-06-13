@@ -24,8 +24,8 @@ export default function CollectionDialog() {
   const setCurrent = useNoteStore((s) => s.setCurrent);
   const deleteNote = useNoteStore((s) => s.deleteNote);
   const deleteAllNotes = useNoteStore((s) => s.deleteAllNotes);
+  const flush = useNoteStore((s) => s.flush); // Added
 
-  // Initialize Fuse.js for searching notes
   const fuse = useMemo(() => {
     return new Fuse(notes, {
       keys: ['title', 'body'],
@@ -34,10 +34,8 @@ export default function CollectionDialog() {
     });
   }, [notes]);
 
-  // Filter notes based on search query
   const results = query ? fuse.search(query).map((r) => r.item) : notes;
 
-  // Sort notes based on updatedAt and sort direction
   const sortedNotes = useMemo(() => {
     return [...results].sort((a, b) =>
       sortDir === 'desc' ? b.updatedAt - a.updatedAt : a.updatedAt - b.updatedAt
@@ -52,15 +50,21 @@ export default function CollectionDialog() {
     deleteAllNotes();
   };
 
-  // Debounce the search input to improve performance
   const debouncedSetQuery = useMemo(() => debounce(setQuery, 200), []);
 
-  // Clean up debounce on unmount
   useEffect(() => {
     return () => {
       debouncedSetQuery.cancel();
     };
   }, [debouncedSetQuery]);
+
+  const handleSelect = async (id: string) => {
+    if (flush) {
+      await flush(); // Flush autosave before switching
+    }
+    setCurrent(id); // Switch to the selected note
+    setOpen(false); // Close the dialog
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -89,47 +93,46 @@ export default function CollectionDialog() {
               variant={layout === 'grid' ? 'default' : 'outline'}
               size="icon"
               onClick={() => setLayout('grid')}
-              aria-label="Grid view"
-            >
+              aria-label="Grid view">
               <IconLayoutGrid size={18} />
             </Button>
             <Button
               variant={layout === 'list' ? 'default' : 'outline'}
               size="icon"
               onClick={() => setLayout('list')}
-              aria-label="List view"
-            >
+              aria-label="List view">
               <IconList size={18} />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))}
-              aria-label={`Sort ${sortDir === 'desc' ? 'oldest' : 'newest'} first`}
-            >
-              {sortDir === 'desc' ? <IconArrowDown size={18} /> : <IconArrowUp size={18} />}
+              aria-label={`Sort ${
+                sortDir === 'desc' ? 'oldest' : 'newest'
+              } first`}>
+              {sortDir === 'desc' ? (
+                <IconArrowDown size={18} />
+              ) : (
+                <IconArrowUp size={18} />
+              )}
             </Button>
             <Button
               variant="destructive"
               size="icon"
               onClick={handleDeleteAllNotes}
-              aria-label="Delete all notes"
-            >
+              aria-label="Delete all notes">
               <IconTrash size={18} />
             </Button>
           </div>
         </header>
 
-        {layout === 'grid' ? (
+       {layout === 'grid' ? (
           <ul className="grid max-h-[60vh] grid-cols-2 gap-4 overflow-y-auto pr-2" role="list">
             {sortedNotes.map((n) => (
               <li key={n.id} className="flex items-center justify-between">
                 <button
                   className="w-full text-left block rounded border p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  onClick={() => {
-                    setCurrent(n.id);
-                    setOpen(false);
-                  }}
+                  onClick={() => handleSelect(n.id)} // Updated to use handleSelect
                 >
                   <h3 className="truncate font-medium">{n.title}</h3>
                   <p className="text-xs text-zinc-500">
@@ -140,8 +143,7 @@ export default function CollectionDialog() {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDeleteNote(n.id)}
-                  aria-label={`Delete note ${n.title}`}
-                >
+                  aria-label={`Delete note ${n.title}`}>
                   <IconTrash size={16} />
                 </Button>
               </li>
@@ -153,10 +155,7 @@ export default function CollectionDialog() {
               <li key={n.id} className="flex items-center justify-between">
                 <button
                   className="w-full text-left flex items-center justify-between rounded border p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  onClick={() => {
-                    setCurrent(n.id);
-                    setOpen(false);
-                  }}
+                  onClick={() => handleSelect(n.id)} // Updated to use handleSelect
                 >
                   <span className="truncate">{n.title}</span>
                   <span className="ml-2 shrink-0 text-xs text-zinc-500">
@@ -167,8 +166,7 @@ export default function CollectionDialog() {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDeleteNote(n.id)}
-                  aria-label={`Delete note ${n.title}`}
-                >
+                  aria-label={`Delete note ${n.title}`}>
                   <IconTrash size={16} />
                 </Button>
               </li>
@@ -177,5 +175,5 @@ export default function CollectionDialog() {
         )}
       </DialogContent>
     </Dialog>
-  );
+  )
 }

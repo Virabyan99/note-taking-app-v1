@@ -9,7 +9,7 @@ export interface NoteState {
   settings: AppSettings;
   editorInstance: LexicalEditor | null;
   createNote: (partial?: Partial<Note>) => Promise<Note>;
-  updateNote: (id: string, draft: (n: Note) => void) => void;
+  updateNote: (id: string, draft: (n: Note) => void) => Promise<void>; // Updated to Promise<void>
   deleteNote: (id: string) => Promise<void>;
   deleteAllNotes: () => Promise<void>;
   setSettings: (s: Partial<AppSettings>) => void;
@@ -21,9 +21,9 @@ export interface NoteState {
   setSaveState: (state: 'idle' | 'saving' | 'saved') => void;
   setEditorInstance: (editor: LexicalEditor | null) => void;
   closeCurrentNote: () => Promise<void>;
+  flush: (() => Promise<void>) | null; // Added
+  setFlush: (flush: (() => Promise<void>) | null) => void; // Added
 }
-
-export type NoteStoreCreator = StateCreator<NoteState, [['zustand/immer', never]], []>;
 
 export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table<AppSettings, string> }): NoteStoreCreator {
   return (set, get) => ({
@@ -34,6 +34,8 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
     currentId: null,
     saveState: 'idle',
     setSaveState: (state) => set({ saveState: state }),
+    flush: null, // Added
+    setFlush: (flush) => set({ flush }), // Added
 
     async createNote(partial = {}) {
       const newNote: Note = {
@@ -50,13 +52,15 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       return newNote;
     },
 
-    updateNote(id, recipe) {
+    async updateNote(id, recipe) { // Made async
       set((state) => {
         const note = state.notes.find((n) => n.id === id);
         if (note) recipe(note);
       });
       const updated = get().notes.find((n) => n.id === id);
-      if (updated) db.notes.put(updated);
+      if (updated) {
+        await db.notes.put(updated); // Await the database write
+      }
     },
 
     async deleteNote(id) {
