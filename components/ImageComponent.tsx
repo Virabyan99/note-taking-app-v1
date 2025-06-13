@@ -7,6 +7,8 @@ import { useSpring, animated } from 'react-spring';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { SET_IMAGE_HEIGHT_COMMAND } from '@/nodes/ImageNode';
 import { useState, useRef, useEffect } from 'react';
+import { IconPencil } from '@tabler/icons-react';
+import ImageEditDialog from './ImageEditDialog';
 
 interface Props {
   nodeKey: string;
@@ -34,6 +36,7 @@ export default function ImageComponent({
 
   const [editor] = useLexicalComposerContext();
   const [height, setHeight] = useState<number | undefined>(initialHeight ?? undefined);
+  const [open, setOpen] = useState(false);
   const refFigure = useRef<HTMLDivElement>(null);
   const startY = useRef(0);
   const startH = useRef(0);
@@ -81,7 +84,7 @@ export default function ImageComponent({
     <animated.figure
       ref={setNodeRef}
       style={{ ...style, transition, height: height ? `${height}px` : 'auto' }}
-      className={`relative my-4 w-full cursor-grab select-none overflow-hidden rounded-lg border ${
+      className={`group relative my-4 w-full cursor-grab select-none overflow-hidden rounded-lg border ${
         isDragging ? 'opacity-30 ring-2 ring-blue-500' : ''
       } border-zinc-200 dark:border-zinc-700`}
       {...attributes}
@@ -103,6 +106,20 @@ export default function ImageComponent({
           {alt}
         </figcaption>
       )}
+      <button
+        onClick={() => setOpen(true)}
+        className="absolute top-2 right-2 rounded bg-black/50 p-1 text-white opacity-0 transition group-hover:opacity-100"
+        aria-label="Edit image"
+      >
+        <IconPencil size={16} />
+      </button>
+      <ImageEditDialog
+        open={open}
+        onOpenChange={setOpen}
+        src={src}
+        nodeKey={nodeKey}
+        alt={alt}
+      />
       <span
         onPointerDown={onPointerDown}
         className="absolute bottom-1 right-1 h-4 w-4 cursor-ns-resize rounded bg-white/60 shadow ring-1 ring-zinc-400 dark:bg-zinc-800"

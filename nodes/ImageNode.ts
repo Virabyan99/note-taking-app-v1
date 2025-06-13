@@ -5,6 +5,7 @@ import { createCommand } from 'lexical';
 
 export const INSERT_IMAGE_COMMAND = createCommand<ImagePayload>('INSERT_IMAGE');
 export const SET_IMAGE_HEIGHT_COMMAND = createCommand<{ key: string; height: number }>('SET_IMAGE_HEIGHT');
+export const SET_IMAGE_SRC_COMMAND = createCommand<{ key: string; src: string }>('SET_IMAGE_SRC');
 
 export interface ImagePayload {
   src: string;
@@ -15,10 +16,12 @@ export interface ImagePayload {
 
 export type SerializedImageNode = {
   type: 'image';
-  version: 2; // Bumped to 2 to include height
-  height?: number; // Added height
-} & ImagePayload &
-  SerializedLexicalNode;
+  version: 2;
+  height?: number;
+  src: string;
+  alt?: string;
+  width?: number;
+} & SerializedLexicalNode;
 
 export class ImageNode extends DecoratorNode<ReactNode> {
   __src: string;
@@ -75,7 +78,7 @@ export class ImageNode extends DecoratorNode<ReactNode> {
     return React.createElement(ImageComponent, {
       nodeKey: this.getKey(),
       src: this.__src,
-      alt: this.__alt,
+      alt: this.__alt, // Corrected line
       width: this.__width,
       height: this.__height,
     });
@@ -84,6 +87,11 @@ export class ImageNode extends DecoratorNode<ReactNode> {
   setHeight(h: number) {
     const writable = this.getWritable();
     writable.__height = h;
+  }
+
+  setSrc(s: string) {
+    const writable = this.getWritable();
+    writable.__src = s;
   }
 }
 

@@ -18,6 +18,7 @@ import DragDropImagePlugin from './plugins/DragDropImagePlugin'
 import HorizontalSortPlugin from './plugins/HorizontalSortPlugin'
 import VerticalSortPlugin from './plugins/VerticalSortPlugin'
 import ImageResizePlugin from './plugins/ImageResizePlugin'
+import ImageUpdatePlugin from './plugins/ImageUpdatePlugin'
 
 // Define an empty editor state for new notes with a default paragraph
 const emptyState = JSON.stringify({
@@ -126,6 +127,7 @@ function EditorContent({ noteId }: EditorProps) {
       <HorizontalSortPlugin />
       <VerticalSortPlugin />
       <ImageResizePlugin />
+      <ImageUpdatePlugin />
     </div>
   </>
 );
