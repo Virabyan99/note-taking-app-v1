@@ -11,7 +11,7 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-700">
+    <header className="flex items-center justify-between p-4 ">
       <h1 className="text-xl font-bold">LexicalMini</h1>
       <div className="flex items-center gap-2">
         <Switch

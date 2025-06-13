@@ -1,20 +1,54 @@
-import { IconMoodSmile } from '@tabler/icons-react';
-import Link from 'next/link';
+"use client";
+import { useEffect, useState } from 'react';
+import { useNoteStore } from '@/store';
+import NoteHeader from '@/components/NoteHeader';
+import Editor from '@/components/Editor';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function Home() {
+  const { _rehydrated, notes, createNote, setCurrent, updateNote } = useNoteStore();
+  const [currentNoteId, setCurrentNoteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (_rehydrated && !currentNoteId) {
+      (async () => {
+        const newNote = await createNote();
+        setCurrentNoteId(newNote.id);
+        setCurrent(newNote.id);
+      })();
+    }
+  }, [_rehydrated, createNote, setCurrent, currentNoteId]);
+
+  if (!_rehydrated) return null;
+
+  const handleClose = async () => {
+    if (currentNoteId) {
+      await updateNote(currentNoteId, () => {});
+      toast.success('Note saved');
+    }
+    const newNote = await createNote();
+    setCurrentNoteId(newNote.id);
+    setCurrent(newNote.id);
+  };
+
   return (
-    <section className="flex flex-col items-center gap-4 py-20">
-      <IconMoodSmile size={48} stroke={1.5} />
-      <h1 className="text-2xl font-bold">LexicalMini — Ready to Hack ✨</h1>
-      <p className="text-zinc-500 dark:text-zinc-400">
-        Skeleton app generated in Lesson 05. Time to add state next!
-      </p>
-      <Link
-        className="rounded bg-brand px-4 py-2 font-medium text-gray-800 shadow"
-        href="/note/new"
-      >
-        New Note
-      </Link>
-    </section>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto py-8 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
+        {currentNoteId && (
+          <>
+            <NoteHeader noteId={currentNoteId} onClose={handleClose} />
+            <div className="mt-4 pt-4">
+              <Editor noteId={currentNoteId} />
+            </div>
+          </>
+        )}
+      </div>
+    </motion.div>
   );
 }
