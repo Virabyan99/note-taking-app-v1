@@ -1,7 +1,6 @@
 "use client";
 import { useNoteStore } from '@/store';
-import { Switch } from './ui/switch';
-import { IconX, IconPhotoPlus } from '@tabler/icons-react';
+import { IconX, IconPhotoPlus, IconSun, IconMoon } from '@tabler/icons-react';
 import AutosaveStatus from './AutosaveStatus';
 import { toast } from 'sonner';
 import { INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
@@ -44,7 +43,7 @@ export default function Header() {
         <SettingsDialog />
         {currentId && (
           <>
-            <AutosaveStatus />
+            {/* <AutosaveStatus /> */}
             <input
               type="file"
               accept="image/*"
@@ -58,7 +57,7 @@ export default function Header() {
               className="rounded border px-2 py-1 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
               disabled={!editorInstance}
             >
-              <IconPhotoPlus size={16} className="inline mr-1" /> Image
+              <IconPhotoPlus size={16} className="inline mr-1" />
             </button>
             <button
               onClick={handleCloseNote}
@@ -69,12 +68,9 @@ export default function Header() {
             </button>
           </>
         )}
-        <Switch
-          checked={isDark}
-          onCheckedChange={toggleTheme}
-          aria-label="Toggle dark mode"
-        />
-        <span className="text-sm text-zinc-700 dark:text-zinc-300">Dark Mode</span>
+        <button onClick={toggleTheme} aria-label="Toggle theme" className="p-2">
+          {isDark ? <IconMoon size={20} /> : <IconSun size={20} />}
+        </button>
       </div>
     </header>
   );
