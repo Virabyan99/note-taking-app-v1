@@ -1,28 +1,23 @@
 "use client";
+import { useState } from 'react';
 import { useNoteStore } from '@/store';
-import { IconX, IconPhotoPlus, IconSun, IconMoon } from '@tabler/icons-react';
-import AutosaveStatus from './AutosaveStatus';
+import { IconPhotoPlus, IconSun, IconMoon } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
 import React from 'react';
 import CollectionDialog from './CollectionDialog';
 import SettingsDialog from './SettingsDialog';
+import SaveNoteDialog from './SaveNoteDialog';
 import { Save } from 'lucide-react';
 
 export default function Header() {
-  const { settings, setSettings, currentId, closeCurrentNote, editorInstance } = useNoteStore();
+  const { settings, setSettings, currentId, editorInstance } = useNoteStore();
   const isDark = settings.theme === 'dark';
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
 
   const toggleTheme = () => {
     setSettings({ theme: isDark ? 'light' : 'dark' });
-  };
-
-  const handleCloseNote = async () => {
-    if (currentId) {
-      await closeCurrentNote();
-      toast.success('Note saved');
-    }
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -43,7 +38,6 @@ export default function Header() {
         <SettingsDialog />
         {currentId && (
           <>
-            {/* <AutosaveStatus /> */}
             <input
               type="file"
               accept="image/*"
@@ -60,9 +54,9 @@ export default function Header() {
               <IconPhotoPlus size={16} className="inline mr-1" />
             </button>
             <button
-              onClick={handleCloseNote}
+              onClick={() => setIsSaveDialogOpen(true)}
               className="rounded p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-              aria-label="Close note"
+              aria-label="Save note"
             >
               <Save size={20} />
             </button>
@@ -72,6 +66,7 @@ export default function Header() {
           {isDark ? <IconMoon size={20} /> : <IconSun size={20} />}
         </button>
       </div>
+      <SaveNoteDialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen} />
     </header>
   );
 }

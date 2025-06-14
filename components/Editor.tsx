@@ -59,6 +59,7 @@ function EditorContent({ noteId }: EditorProps) {
   const [editor] = useLexicalComposerContext();
   const [isInternalDrag, setIsInternalDrag] = useState(false);
   const setEditorInstance = useNoteStore((s) => s.setEditorInstance);
+  const saveCurrentNote = useNoteStore((s) => s.saveCurrentNote);
 
   useEffect(() => {
     setEditorInstance(editor);
@@ -71,6 +72,16 @@ function EditorContent({ noteId }: EditorProps) {
       setEditorInstance(null);
     };
   }, [editor, note?.body, setEditorInstance]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveCurrentNote();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [saveCurrentNote]);
 
   if (!note) {
     return (
