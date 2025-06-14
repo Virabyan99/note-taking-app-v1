@@ -8,6 +8,7 @@ import { INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
 import React from 'react';
 import CollectionDialog from './CollectionDialog';
 import SettingsDialog from './SettingsDialog';
+import { Save } from 'lucide-react';
 
 export default function Header() {
   const { settings, setSettings, currentId, closeCurrentNote, editorInstance } = useNoteStore();
@@ -64,7 +65,7 @@ export default function Header() {
               className="rounded p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
               aria-label="Close note"
             >
-              <IconX size={20} />
+              <Save size={20} />
             </button>
           </>
         )}

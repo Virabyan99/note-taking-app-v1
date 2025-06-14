@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import type { Table } from 'dexie';
 import { AppSettings, Note } from '@/types/types';
 import { LexicalEditor } from 'lexical';
+import { FONTS } from '@/utils/fonts';
 
 export interface NoteState {
   notes: Note[];
@@ -21,7 +22,7 @@ export interface NoteState {
   setSaveState: (state: 'idle' | 'saving' | 'saved') => void;
   setEditorInstance: (editor: LexicalEditor | null) => void;
   closeCurrentNote: () => Promise<void>;
-  saveCurrentNote: () => Promise<void>; // Added
+  saveCurrentNote: () => Promise<void>;
 }
 
 export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table<AppSettings, string> }): NoteStoreCreator {
@@ -94,15 +95,9 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       });
       const { settings } = get();
       db.settings.put(settings, 'app');
-      if (patch.theme) {
-        localStorage.setItem('lexical-mini-theme', patch.theme);
-      }
-      if (patch.fontFamily) {
-        localStorage.setItem('lexical-mini-font-family', patch.fontFamily);
-      }
-      if (patch.fontSize) {
-        localStorage.setItem('lexical-mini-font-size', patch.fontSize.toString());
-      }
+      localStorage.setItem('lexical-mini-theme', settings.theme);
+      localStorage.setItem('lexical-mini-font', FONTS[settings.fontFamily]);
+      localStorage.setItem('lexical-mini-size', settings.fontSize.toString());
     },
 
     rehydrate(notes, settings) {
@@ -137,7 +132,7 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
 
     async closeCurrentNote() {
       const state = get();
-      await state.saveCurrentNote(); // Save the current note’s editor state
+      await state.saveCurrentNote();
       const newNote = await state.createNote();
       state.setCurrent(newNote.id);
     },

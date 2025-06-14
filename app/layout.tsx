@@ -32,27 +32,20 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                const FONTS = {
-                  system: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont',
-                  serif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times',
-                  mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono"',
-                };
-                try {
-                  const theme = localStorage.getItem('lexical-mini-theme');
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  }
-                  const fontFamily = localStorage.getItem('lexical-mini-font-family');
-                  const fontSize = localStorage.getItem('lexical-mini-font-size');
-                  if (fontFamily && FONTS[fontFamily]) {
-                    document.documentElement.style.setProperty('--font-body', FONTS[fontFamily]);
-                  }
-                  if (fontSize) {
-                    document.documentElement.style.setProperty('--font-size', fontSize + 'px');
-                  }
-                } catch (e) {}
-              })();
+              try {
+                const theme = localStorage.getItem('lexical-mini-theme');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+                const font = localStorage.getItem('lexical-mini-font');
+                if (font) {
+                  document.documentElement.style.setProperty('--font-body', font);
+                }
+                const size = localStorage.getItem('lexical-mini-size');
+                if (size) {
+                  document.documentElement.style.setProperty('--font-size', size + 'px');
+                }
+              } catch (e) {}
             `,
           }}
         />
