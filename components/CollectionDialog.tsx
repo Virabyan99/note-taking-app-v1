@@ -24,7 +24,7 @@ export default function CollectionDialog() {
   const setCurrent = useNoteStore((s) => s.setCurrent);
   const deleteNote = useNoteStore((s) => s.deleteNote);
   const deleteAllNotes = useNoteStore((s) => s.deleteAllNotes);
-  const flush = useNoteStore((s) => s.flush); // Added
+  const saveCurrentNote = useNoteStore((s) => s.saveCurrentNote); // Added
 
   const fuse = useMemo(() => {
     return new Fuse(notes, {
@@ -59,11 +59,9 @@ export default function CollectionDialog() {
   }, [debouncedSetQuery]);
 
   const handleSelect = async (id: string) => {
-    if (flush) {
-      await flush(); // Flush autosave before switching
-    }
-    setCurrent(id); // Switch to the selected note
-    setOpen(false); // Close the dialog
+    await saveCurrentNote(); // Save the current note before switching
+    setCurrent(id);
+    setOpen(false);
   };
 
   return (
@@ -126,13 +124,13 @@ export default function CollectionDialog() {
           </div>
         </header>
 
-       {layout === 'grid' ? (
+        {layout === 'grid' ? (
           <ul className="grid max-h-[60vh] grid-cols-2 gap-4 overflow-y-auto pr-2" role="list">
             {sortedNotes.map((n) => (
               <li key={n.id} className="flex items-center justify-between">
                 <button
                   className="w-full text-left block rounded border p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  onClick={() => handleSelect(n.id)} // Updated to use handleSelect
+                  onClick={() => handleSelect(n.id)}
                 >
                   <h3 className="truncate font-medium">{n.title}</h3>
                   <p className="text-xs text-zinc-500">
@@ -155,7 +153,7 @@ export default function CollectionDialog() {
               <li key={n.id} className="flex items-center justify-between">
                 <button
                   className="w-full text-left flex items-center justify-between rounded border p-3 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  onClick={() => handleSelect(n.id)} // Updated to use handleSelect
+                  onClick={() => handleSelect(n.id)}
                 >
                   <span className="truncate">{n.title}</span>
                   <span className="ml-2 shrink-0 text-xs text-zinc-500">
@@ -175,5 +173,5 @@ export default function CollectionDialog() {
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

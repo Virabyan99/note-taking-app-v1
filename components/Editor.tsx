@@ -1,14 +1,12 @@
 'use client';
 import React, { createContext, useEffect, useState } from 'react';
-import { LexicalEditor } from 'lexical'; // Import LexicalEditor
+import { LexicalEditor } from 'lexical';
 import { useNoteStore } from '@/store';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { useAutosave } from '@/hooks/useAutosave';
 import { ImageNode } from '@/nodes/ImageNode';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import ImagePlugin from './plugins/ImagePlugin';
@@ -19,7 +17,6 @@ import VerticalSortPlugin from './plugins/VerticalSortPlugin';
 import ImageResizePlugin from './plugins/ImageResizePlugin';
 import ImageUpdatePlugin from './plugins/ImageUpdatePlugin';
 
-// Define and export DragContext
 export const DragContext = createContext<{
   isInternalDrag: boolean;
   setIsInternalDrag: (val: boolean) => void;
@@ -28,7 +25,6 @@ export const DragContext = createContext<{
   setIsInternalDrag: () => {},
 });
 
-// Define an empty editor state for new notes with a default paragraph
 const emptyState = JSON.stringify({
   root: {
     children: [
@@ -60,15 +56,12 @@ interface EditorProps {
 
 function EditorContent({ noteId }: EditorProps) {
   const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
-  const { onChange, flush } = useAutosave(noteId);
   const [editor] = useLexicalComposerContext();
   const [isInternalDrag, setIsInternalDrag] = useState(false);
   const setEditorInstance = useNoteStore((s) => s.setEditorInstance);
-  const setFlush = useNoteStore((s) => s.setFlush);
 
   useEffect(() => {
     setEditorInstance(editor);
-    setFlush(flush);
     const stateJson = note?.body || emptyState;
     const state = editor.parseEditorState(stateJson);
     queueMicrotask(() => {
@@ -76,9 +69,8 @@ function EditorContent({ noteId }: EditorProps) {
     });
     return () => {
       setEditorInstance(null);
-      setFlush(null);
     };
-  }, [editor, note?.body, setEditorInstance, setFlush, flush]);
+  }, [editor, note?.body, setEditorInstance]);
 
   if (!note) {
     return (
@@ -103,8 +95,7 @@ function EditorContent({ noteId }: EditorProps) {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
-        <OnChangePlugin onChange={onChange} />
-        <ImagePlugin /> {/* Add this line */}
+        <ImagePlugin />
         <PasteImagePlugin />
         <DragDropImagePlugin />
         <HorizontalSortPlugin />

@@ -33,10 +33,23 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                const FONTS = {
+                  system: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont',
+                  serif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times',
+                  mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono"',
+                };
                 try {
                   const theme = localStorage.getItem('lexical-mini-theme');
                   if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
+                  }
+                  const fontFamily = localStorage.getItem('lexical-mini-font-family');
+                  const fontSize = localStorage.getItem('lexical-mini-font-size');
+                  if (fontFamily && FONTS[fontFamily]) {
+                    document.documentElement.style.setProperty('--font-body', FONTS[fontFamily]);
+                  }
+                  if (fontSize) {
+                    document.documentElement.style.setProperty('--font-size', fontSize + 'px');
                   }
                 } catch (e) {}
               })();

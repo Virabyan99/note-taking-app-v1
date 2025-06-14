@@ -6,7 +6,8 @@ import AutosaveStatus from './AutosaveStatus';
 import { toast } from 'sonner';
 import { INSERT_IMAGE_COMMAND } from '@/nodes/ImageNode';
 import React from 'react';
-import CollectionDialog from './CollectionDialog'; // Add this import
+import CollectionDialog from './CollectionDialog';
+import SettingsDialog from './SettingsDialog';
 
 export default function Header() {
   const { settings, setSettings, currentId, closeCurrentNote, editorInstance } = useNoteStore();
@@ -38,7 +39,8 @@ export default function Header() {
     <header className="flex items-center justify-between p-4">
       <h1 className="text-xl font-bold">LexicalMini</h1>
       <div className="flex items-center gap-4">
-        <CollectionDialog /> {/* Add the dialog trigger here */}
+        <CollectionDialog />
+        <SettingsDialog />
         {currentId && (
           <>
             <AutosaveStatus />

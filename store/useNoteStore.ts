@@ -9,7 +9,7 @@ export interface NoteState {
   settings: AppSettings;
   editorInstance: LexicalEditor | null;
   createNote: (partial?: Partial<Note>) => Promise<Note>;
-  updateNote: (id: string, draft: (n: Note) => void) => Promise<void>; // Updated to Promise<void>
+  updateNote: (id: string, draft: (n: Note) => void) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   deleteAllNotes: () => Promise<void>;
   setSettings: (s: Partial<AppSettings>) => void;
@@ -21,8 +21,7 @@ export interface NoteState {
   setSaveState: (state: 'idle' | 'saving' | 'saved') => void;
   setEditorInstance: (editor: LexicalEditor | null) => void;
   closeCurrentNote: () => Promise<void>;
-  flush: (() => Promise<void>) | null; // Added
-  setFlush: (flush: (() => Promise<void>) | null) => void; // Added
+  saveCurrentNote: () => Promise<void>; // Added
 }
 
 export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table<AppSettings, string> }): NoteStoreCreator {
@@ -34,8 +33,6 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
     currentId: null,
     saveState: 'idle',
     setSaveState: (state) => set({ saveState: state }),
-    flush: null, // Added
-    setFlush: (flush) => set({ flush }), // Added
 
     async createNote(partial = {}) {
       const newNote: Note = {
@@ -52,14 +49,14 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       return newNote;
     },
 
-    async updateNote(id, recipe) { // Made async
+    async updateNote(id, recipe) {
       set((state) => {
         const note = state.notes.find((n) => n.id === id);
         if (note) recipe(note);
       });
       const updated = get().notes.find((n) => n.id === id);
       if (updated) {
-        await db.notes.put(updated); // Await the database write
+        await db.notes.put(updated);
       }
     },
 
@@ -100,6 +97,12 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       if (patch.theme) {
         localStorage.setItem('lexical-mini-theme', patch.theme);
       }
+      if (patch.fontFamily) {
+        localStorage.setItem('lexical-mini-font-family', patch.fontFamily);
+      }
+      if (patch.fontSize) {
+        localStorage.setItem('lexical-mini-font-size', patch.fontSize.toString());
+      }
     },
 
     rehydrate(notes, settings) {
@@ -120,11 +123,21 @@ export function createNoteStoreCreator(db: { notes: Table<Note>; settings: Table
       set({ editorInstance: editor });
     },
 
+    saveCurrentNote: async () => {
+      const state = get();
+      if (state.currentId && state.editorInstance) {
+        const editorState = state.editorInstance.getEditorState();
+        const serializedState = JSON.stringify(editorState.toJSON());
+        await state.updateNote(state.currentId, (note) => {
+          note.body = serializedState;
+          note.updatedAt = Date.now();
+        });
+      }
+    },
+
     async closeCurrentNote() {
       const state = get();
-      if (state.currentId) {
-        await state.updateNote(state.currentId, () => {});
-      }
+      await state.saveCurrentNote(); // Save the current note’s editor state
       const newNote = await state.createNote();
       state.setCurrent(newNote.id);
     },
