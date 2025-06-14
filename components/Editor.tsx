@@ -60,7 +60,7 @@ interface EditorProps {
 
 function EditorContent({ noteId }: EditorProps) {
   const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
-  const { onChange, flush } = useAutosave(noteId); // Destructured correctly
+  const { onChange, flush } = useAutosave(noteId);
   const [editor] = useLexicalComposerContext();
   const [isInternalDrag, setIsInternalDrag] = useState(false);
   const setEditorInstance = useNoteStore((s) => s.setEditorInstance);
@@ -68,7 +68,7 @@ function EditorContent({ noteId }: EditorProps) {
 
   useEffect(() => {
     setEditorInstance(editor);
-    setFlush(flush); // Set flush in store
+    setFlush(flush);
     const stateJson = note?.body || emptyState;
     const state = editor.parseEditorState(stateJson);
     queueMicrotask(() => {
@@ -76,7 +76,7 @@ function EditorContent({ noteId }: EditorProps) {
     });
     return () => {
       setEditorInstance(null);
-      setFlush(null); // Clear flush on unmount
+      setFlush(null);
     };
   }, [editor, note?.body, setEditorInstance, setFlush, flush]);
 
@@ -103,7 +103,8 @@ function EditorContent({ noteId }: EditorProps) {
           ErrorBoundary={LexicalErrorBoundary}
         />
         <HistoryPlugin />
-        <OnChangePlugin onChange={onChange} /> 
+        <OnChangePlugin onChange={onChange} />
+        <ImagePlugin /> {/* Add this line */}
         <PasteImagePlugin />
         <DragDropImagePlugin />
         <HorizontalSortPlugin />
