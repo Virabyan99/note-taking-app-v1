@@ -14,6 +14,7 @@ import { IconLayoutGrid, IconList, IconTrash, IconArrowDown, IconArrowUp } from 
 import { Button } from '@/components/ui/button';
 import Fuse from 'fuse.js';
 import debounce from 'lodash.debounce';
+import { extractTextFromEditorState } from '@/utils/lexicalHelpers';
 
 export default function CollectionDialog() {
   const [open, setOpen] = useState(false);
@@ -24,11 +25,17 @@ export default function CollectionDialog() {
   const setCurrent = useNoteStore((s) => s.setCurrent);
   const deleteNote = useNoteStore((s) => s.deleteNote);
   const deleteAllNotes = useNoteStore((s) => s.deleteAllNotes);
-  const saveCurrentNote = useNoteStore((s) => s.saveCurrentNote); // Added
+  const saveCurrentNote = useNoteStore((s) => s.saveCurrentNote);
 
   const fuse = useMemo(() => {
     return new Fuse(notes, {
-      keys: ['title', 'body'],
+      keys: [
+        'title',
+        {
+          name: 'body',
+          getFn: (note) => extractTextFromEditorState(note.body),
+        },
+      ],
       includeScore: true,
       threshold: 0.4,
     });
